@@ -379,7 +379,7 @@ local function refreshUnitInfo()
 						calculateClusterDPS(weaponDef, weaponDef.damages[0])
 					elseif weaponDef.customParams.speceffect == "split" then -- Bullets that split into other, smaller bullets
 						unitExempt = true
-						local splitd = WeaponDefNames[weaponDef.customParams.def].damages[0]
+						local splitd = WeaponDefNames[weaponDef.customParams.speceffect_def].damages[0]
 						local splitn = weaponDef.customParams.number or 1
 						calculateWeaponDPS(weaponDef, splitd * splitn)
 					elseif weaponDef.customParams.spark_basedamage then -- Lightning
@@ -1952,7 +1952,7 @@ function widget:DrawScreen()
 		end
 	end
 
-	if alwaysShow or not emptyInfo or (isPregame and not mySpec) then
+	if alwaysShow or not emptyInfo or (isPregame and (not mySpec or displayMapPosition)) then
 		if useRenderToTextureBg and infoBgTex then
 			-- background element
 			gl.Color(1,1,1,Spring.GetConfigFloat("ui_opacity", 0.7)*1.1)

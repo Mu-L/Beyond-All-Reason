@@ -294,10 +294,27 @@ function UnitDef_Post(name, uDef)
 
 		if modOptions.unit_restrictions_noantinuke then
 			if uDef.weapondefs then
-				for _, weapon in pairs(uDef.weapondefs) do
+				local numWeapons = 0
+				local newWdefs = {}
+				local hasAnti = false
+				for i, weapon in pairs(uDef.weapondefs) do
 					if weapon.interceptor and weapon.interceptor == 1 then
+						uDef.weapondefs[i] = nil
+						hasAnti = true
+					else
+						numWeapons = numWeapons + 1
+						newWdefs[numWeapons] = weapon
+					end
+				end
+				if hasAnti then
+					uDef.weapondefs = newWdefs
+					if numWeapons == 0 and (not uDef.radardistance or uDef.radardistance < 1500) then
 						uDef.maxthisunit = 0
-						break
+					else
+						if uDef.metalcost then
+							uDef.metalcost = math.floor(uDef.metalcost * 0.6)	-- give a discount for removing anti-nuke
+							uDef.energycost = math.floor(uDef.energycost * 0.6)
+						end
 					end
 				end
 			end
@@ -378,6 +395,19 @@ function UnitDef_Post(name, uDef)
 					uDef.customparams.evolution_power_multiplier = nil
 				end
 			end
+		end
+
+		if uDef.customparams.evolution_target then
+			local udcp                            = uDef.customparams
+			udcp.combatradius                     = udcp.combatradius or 1000
+			udcp.evolution_announcement_size      = tonumber(udcp.evolution_announcement_size)
+			udcp.evolution_condition              = udcp.evolution_condition or "timer"
+			udcp.evolution_health_threshold       = tonumber(udcp.evolution_health_threshold) or 0
+			udcp.evolution_health_transfer        = udcp.evolution_health_transfer or "flat"
+			udcp.evolution_power_enemy_multiplier = tonumber(udcp.evolution_power_enemy_multiplier) or 1
+			udcp.evolution_power_multiplier       = tonumber(udcp.evolution_power_multiplier) or 1
+			udcp.evolution_power_threshold        = tonumber(udcp.evolution_power_threshold) or 600
+			udcp.evolution_timer                  = tonumber(udcp.evolution_timer) or 20
 		end
 
 		if modOptions.unit_restrictions_notacnukes then
@@ -500,7 +530,7 @@ function UnitDef_Post(name, uDef)
 		if name == "corca" or name == "corck" or name == "corcv" then
 			local numBuildoptions = #uDef.buildoptions
 		end
-	
+
 		-- Cortex T1 Sea Constructors
 		if name == "corcs" or name == "corcsa" then
 			local numBuildoptions = #uDef.buildoptions
@@ -508,7 +538,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 2] = "corfrock" -- Janitor - Anti Air Missile Battery
 		end
 
-		-- Cortex T1 Bots Factory 
+		-- Cortex T1 Bots Factory
 		if name == "corlab" then
 			local numBuildoptions = #uDef.buildoptions
 		end
@@ -529,7 +559,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 2] = "cornanotc2plat" -- Floating T2 Constructor Turret
 		end
 
-		-- Cortex T2 Bots Factory 
+		-- Cortex T2 Bots Factory
 		if name == "coralab" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "cordeadeye"
@@ -653,7 +683,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions + 4] = "armvadert4" -- Epic Tumbleweed - Nuclear Rolling Bomb
 		end
 
-		-- Cortex T1 Bots Factory 
+		-- Cortex T1 Bots Factory
 		if name == "corlab" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corkark" -- Archaic Karkinos
@@ -981,6 +1011,9 @@ function UnitDef_Post(name, uDef)
 	if uDef.metalcost and uDef.health and uDef.canmove == true and uDef.mass == nil then
 		local healthmass = math.ceil(uDef.health/6)
 		uDef.mass = math.max(uDef.metalcost, healthmass)
+		if uDef.metalcost < 751 and uDef.mass > 750 then
+			uDef.mass = 750
+		end
 		--if uDef.metalcost < healthmass then
 		--	Spring.Echo(name, uDef.mass, uDef.metalcost, uDef.mass - uDef.metalcost)
 		--end
